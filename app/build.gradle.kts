@@ -48,6 +48,14 @@ android {
     buildFeatures {
         compose = true
     }
+    sourceSets {
+        getByName("test") {
+            resources.srcDirs("src/testResources")
+        }
+        getByName("androidTest") {
+            resources.srcDirs("src/testResources")
+        }
+    }
 }
 
 dependencies {

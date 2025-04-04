@@ -1,3 +1,22 @@
 <resources>
     <string name="app_name">Albums App</string>
+
+    <!-- Albums -->
+    <string name="albums_text">Albums</string>
+    <string name="albums_image_content_description">Albums</string>
+    <string name="album_list_empty_text">No albums available</string>
+    <string name="album_list_dialog_error_title">Error</string>
+    <string name="album_list_dialog_error_retry_button">Retry</string>
+    <string name="album_list_loading_albums_error">We had trouble loading your albums. Please verify your internet connection and try again.</string>
+
+    <!-- Errors -->
+    <string name="error_request_timed_out">The operation took too long to complete.</string>
+    <string name="error_no_internet">Unable to connect. Please check your internet and try again.</string>
+    <string name="error_file_too_large">The selected file exceeds the maximum allowed size.</string>
+    <string name="error_server_error">Something didn’t work as expected. Give it another shot.</string>
+    <string name="error_unknown">Something unexpected happened.</string>
+    <string name="error_disk_full">Couldn’t save because your device is out of storage space.</string>
+    <string name="error_serialization">Sorry, we couldn’t read the data properly.</string>
+    <string name="error_access_denied">You don’t have the required permission to do that.</string>
+    <string name="error_not_found">We couldn’t find what you were looking for.</string>
 </resources>

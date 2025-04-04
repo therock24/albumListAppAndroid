@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -24,6 +23,12 @@ import work.therock24.albumapp.ui.theme.DevicePreview
 import work.therock24.albumapp.ui.theme.Dimensions
 
 
+/**
+ * A composable function that displays an album item in a list.
+ * It shows the album image, ID, album ID, and title.
+ *
+ * @param item The [AlbumUiModel] representing the album to be displayed.
+ */
 @Composable
 fun AlbumItem(item: AlbumUiModel) {
     Column(
@@ -36,7 +41,8 @@ fun AlbumItem(item: AlbumUiModel) {
             model = item.url,
             error = painterResource(id = R.drawable.ic_placeholder_image),
             contentDescription = stringResource(R.string.albums_image_content_description),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .width(Dimensions.AlbumItemImageWidth)
         )
 
         Spacer(modifier = Modifier.height(Dimensions.PaddingSmall))
@@ -44,7 +50,8 @@ fun AlbumItem(item: AlbumUiModel) {
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier
-                .fillMaxWidth()
+                .width(Dimensions.AlbumItemTitleWidth)
+                .align(Alignment.CenterHorizontally)
                 .padding(horizontal = 4.dp)
         ) {
             Text(
@@ -78,7 +85,6 @@ fun AlbumItem(item: AlbumUiModel) {
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
                     .width(Dimensions.AlbumItemTitleWidth)
-                    .height(Dimensions.AlbumItemTitleHeight)
             )
         }
     }

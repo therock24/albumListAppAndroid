@@ -1,15 +1,17 @@
 <resources>
     <string name="app_name">Albums App</string>
 
+    <string name="general_retry">Retry</string>
+    <string name="general_error">Error</string>
+
     <!-- Albums -->
-    <string name="albums_text">Albums</string>
+    <string name="albums_text">Albums List</string>
     <string name="albums_image_content_description">Albums</string>
     <string name="album_list_empty_text">No albums available</string>
-    <string name="album_list_dialog_error_title">Error</string>
-    <string name="album_list_dialog_error_retry_button">Retry</string>
     <string name="album_list_loading_albums_error">We had trouble loading your albums. Please verify your internet connection and try again.</string>
 
     <!-- Errors -->
+    <string name="error_offline">You\'re offline, could not sync data.</string>
     <string name="error_request_timed_out">The operation took too long to complete.</string>
     <string name="error_no_internet">Unable to connect. Please check your internet and try again.</string>
     <string name="error_file_too_large">The selected file exceeds the maximum allowed size.</string>

@@ -6,7 +6,6 @@ sealed interface Error {
         TOO_MANY_REQUESTS,
         NO_INTERNET,
         SERVER_ERROR,
-        SERIALIZATION,
         UNKNOWN,
         NOT_FOUND,
         ACCESS_DENIED,

@@ -22,10 +22,15 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,13 +44,20 @@ import androidx.paging.LoadStates
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import work.therock24.albumapp.albums.presentation.models.AlbumUiModel
 import work.therock24.albumapp.ui.theme.DevicePreview
 import work.therock24.albumapp.util.TestTags
 import work.therock24.albumapp.R
+import work.therock24.albumapp.albums.presentation.ObserveAsEvents
+import work.therock24.albumapp.albums.presentation.SnackbarController
+import work.therock24.albumapp.albums.presentation.SnackbarEventType
 import work.therock24.albumapp.albums.presentation.album_list.composable.AlbumItem
 import work.therock24.albumapp.ui.theme.Dimensions
+import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun AlbumListRoute(viewModel: AlbumListViewModel = hiltViewModel()) {
@@ -53,46 +65,78 @@ fun AlbumListRoute(viewModel: AlbumListViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(Unit) {
-        viewModel.uiEvent.collect { event ->
-            if (event is AlbumListUiEvent.ShowSnackbar) {
-                val result = snackbarHostState.showSnackbar(
-                    message = event.message,
-                    actionLabel = event.actionLabel
-                )
-                if (result == SnackbarResult.ActionPerformed) {
-                    viewModel.onEvent(AlbumListEvent.SyncAlbums)
+    val refreshState = rememberPullToRefreshState()
+    var isRefreshing by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
+
+    val offlineSnackbarText = stringResource(R.string.error_offline)
+    val offlineSnackbarButtonText = stringResource(R.string.general_retry)
+
+    ObserveAsEvents(
+        flow = SnackbarController.events,
+        snackbarHostState
+    ) { event ->
+        coroutineScope.launch {
+            snackbarHostState.currentSnackbarData?.dismiss()
+
+            when(event.type) {
+                SnackbarEventType.Dismiss -> {
+                    // already dismissed before
+                }
+                SnackbarEventType.Offline -> {
+                    val result = snackbarHostState.showSnackbar(
+                        message = offlineSnackbarText,
+                        actionLabel = offlineSnackbarButtonText
+                    )
+                    if (result == SnackbarResult.ActionPerformed) {
+                        viewModel.onEvent(AlbumListEvent.SyncAlbums)
+                    }
                 }
             }
         }
     }
 
-    when (uiState) {
-        AlbumListUiState.Loading -> FullScreenLoader()
-        else -> AlbumListScreen(
-            albumsPaging = pagedAlbums,
-            onEventAction = viewModel::onEvent,
-            snackbarHostState = snackbarHostState
-        )
+    Scaffold(
+        topBar = { AlbumsAppBar() },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = MaterialTheme.colorScheme.background
+    ) { padding ->
+        PullToRefreshBox(
+            state = refreshState,
+            isRefreshing = isRefreshing,
+            onRefresh = {
+                coroutineScope.launch {
+                    isRefreshing = true
+                    viewModel.onEvent(AlbumListEvent.SyncAlbums)
+                    delay(1.seconds)
+                    isRefreshing = false
+                }
+            },
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
+            when (uiState) {
+                AlbumListUiState.Loading -> FullScreenLoader()
+                else -> AlbumListScreen(
+                    albumsPaging = pagedAlbums,
+                    onEventAction = viewModel::onEvent,
+                )
+            }
+        }
     }
 }
 
 @Composable
 fun AlbumListScreen(
     albumsPaging: LazyPagingItems<AlbumUiModel>,
-    snackbarHostState: SnackbarHostState,
     onEventAction: (AlbumListEvent) -> Unit,
     errorText: String? = null
 ) {
-    Scaffold(
-        topBar = { AlbumsAppBar() },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = MaterialTheme.colorScheme.background
-    ) { padding ->
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
         ) {
             RenderContent(albumsPaging, onEventAction)
             if (errorText != null) {
@@ -106,7 +150,7 @@ fun AlbumListScreen(
                 )
             }
         }
-    }
+
 }
 
 @Composable
@@ -194,14 +238,14 @@ fun AlbumsErrorDialog(
         onDismissRequest = { onClose() },
         containerColor = Color.White,
         title = {
-            Text(text = stringResource(R.string.album_list_dialog_error_title))
+            Text(text = stringResource(R.string.general_error))
         },
         text = {
             Text(message)
         },
         confirmButton = {
             Button(onClick = onRetry) {
-                Text(text = stringResource(R.string.album_list_dialog_error_retry_button))
+                Text(text = stringResource(R.string.general_retry))
             }
         }
     )
@@ -229,7 +273,6 @@ fun AlbumsScreen_Preview_Populated() {
     val albumsFlow = MutableStateFlow(PagingData.from(fakeAlbums))
     AlbumListScreen(
         albumsPaging = albumsFlow.collectAsLazyPagingItems(),
-        snackbarHostState = remember { SnackbarHostState() },
         onEventAction = {}
     )
 }
@@ -248,7 +291,6 @@ fun AlbumsScreen_Preview_Loading() {
 
     AlbumListScreen(
         albumsPaging = MutableStateFlow(loadingState).collectAsLazyPagingItems(),
-        snackbarHostState = remember { SnackbarHostState() },
         onEventAction = {}
     )
 }
@@ -267,7 +309,6 @@ fun AlbumsScreen_Preview_ErrorDialog() {
 
     AlbumListScreen(
         albumsPaging = MutableStateFlow(errorState).collectAsLazyPagingItems(),
-        snackbarHostState = remember { SnackbarHostState() },
         errorText = "Something went wrong",
         onEventAction = {}
     )
@@ -281,7 +322,6 @@ fun AlbumsScreen_Preview_Snackbar() {
     Box(modifier = Modifier.fillMaxSize()) {
         AlbumListScreen(
             albumsPaging = MutableStateFlow(emptyPaging).collectAsLazyPagingItems(),
-            snackbarHostState = SnackbarHostState(), // Not used here
             onEventAction = {}
         )
 

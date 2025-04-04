@@ -1,7 +1,7 @@
 package work.therock24.albumapp.util
 
 object Constants {
-    const val API_HOST = ""
+    const val API_BASE_URL = "https://static.leboncoin.fr/"
 }
 
 object TestTags {

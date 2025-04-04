@@ -14,7 +14,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import work.therock24.albumapp.R
-import work.therock24.albumapp.albums.data.TestDataProvider
+import work.therock24.albumapp.util.TestDataProvider
 import work.therock24.albumapp.albums.presentation.album_list.AlbumListScreen
 import work.therock24.albumapp.albums.presentation.models.AlbumUiModel
 import work.therock24.albumapp.util.TestTags
@@ -28,14 +28,6 @@ class AlbumListScreenTest {
     private val appContext: Context = ApplicationProvider.getApplicationContext()
 
     @Test
-    fun whenScreenStarts_thenTitleIsVisible() {
-        renderAlbumsScreen()
-
-        val title = appContext.getString(R.string.albums_text)
-        compose.onNodeWithText(title).assertIsDisplayed()
-    }
-
-    @Test
     fun whenAlbumsAreLoading_thenShowLoadingUI() {
         renderAlbumsScreen()
 
@@ -46,7 +38,7 @@ class AlbumListScreenTest {
     @Test
     fun whenAlbumsLoaded_thenDisplayListAndHideLoading() {
         renderAlbumsScreen(
-            albumItems = TestDataProvider.albums,
+            albumItems = TestDataProvider.albumsUiList,
             refreshState = LoadState.NotLoading(false)
         )
 
@@ -68,8 +60,8 @@ class AlbumListScreenTest {
     @Test
     fun whenErrorOccurs_thenDisplayErrorDialog() {
         val errorText = "Something went wrong"
-        val title = appContext.getString(R.string.album_list_dialog_error_title)
-        val buttonLabel = appContext.getString(R.string.album_list_dialog_error_retry_button)
+        val title = appContext.getString(R.string.general_error)
+        val buttonLabel = appContext.getString(R.string.general_retry)
 
         renderAlbumsScreen(
             refreshState = LoadState.NotLoading(false),
@@ -90,7 +82,7 @@ class AlbumListScreenTest {
             errorMessage = errorMessage
         )
 
-        val retryLabel = appContext.getString(R.string.album_list_dialog_error_retry_button)
+        val retryLabel = appContext.getString(R.string.general_retry)
 
         compose.onNodeWithText(retryLabel)
             .assertIsDisplayed()
@@ -118,7 +110,6 @@ class AlbumListScreenTest {
                 albumsPaging = lazyPagingItems,
                 onEventAction = {},
                 errorText = errorMessage,
-                snackbarHostState = snackbarState
             )
         }
     }
